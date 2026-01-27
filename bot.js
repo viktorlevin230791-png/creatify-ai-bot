@@ -19,6 +19,7 @@ const FREE_TOOL_URL =
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
 bot.on("polling_error", (err) => {
+  // игнорируем 409 (несколько getUpdates — норма для Render)
   if (err?.message?.includes("409")) return;
   console.error("Polling error:", err);
 });
@@ -33,7 +34,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-/* ===== PING (ВАЖНО) ===== */
+/* ===== PING (для UptimeRobot) ===== */
 app.get("/ping", (req, res) => {
   res.status(200).send("ok");
 });
