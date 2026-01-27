@@ -1,30 +1,82 @@
 import TelegramBot from "node-telegram-bot-api";
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+const BOT_TOKEN = process.env.BOT_TOKEN;
 const CHANNEL_USERNAME = "@neyrolooms";
-const FREE_TOOL_URL = "https://lmarena.ai/ru/c/019bee6b-3942-77d2-86fd-10c03d281086";
+const FREE_TOOL_URL =
+  "https://lmarena.ai/ru/c/019bee6b-3942-77d2-86fd-10c03d281086";
 
-// /start
+const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+
+/* ================== WEB SERVER ================== */
+const app = express();
+app.use(express.json());
+app.use(express.static("public"));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+/* ===== API: проверка подписки ===== */
+app.post("/check-subscription", async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ ok: false });
+    }
+
+    const member = await bot.getChatMember(CHANNEL_USERNAME, userId);
+
+    const isSubscribed = ["member", "administrator", "creator"].includes(
+      member.status
+    );
+
+    if (isSubscribed) {
+      return res.json({
+        ok: true,
+        url: FREE_TOOL_URL,
+      });
+    } else {
+      return res.json({ ok: false });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ ok: false });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () =>
+  console.log("🚀 Mini App server running on port", PORT)
+);
+
+/* ================== /start ================== */
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
 
   await bot.sendMessage(
     chatId,
-    `👋 Привет!
+    `👋 *Creatify AI Studio*
 
-Ты получаешь доступ к *бесплатному AI-инструменту* для генерации и экспериментов.
+Получи доступ к *бесплатному AI-инструменту*  
+после подписки на наш Telegram-канал.
 
-📌 Условие одно — подписка на наш Telegram-канал.`,
+👇 Нажми кнопку ниже:`,
     {
       parse_mode: "Markdown",
       reply_markup: {
         inline_keyboard: [
           [
             {
-              text: "🚀 Попробовать AI бесплатно",
+              text: "🚀 Получить бесплатный AI-инструмент",
               web_app: {
-                url: "https://creatify-ai-bot.onrender.com", // твой Mini App
+                url: "https://creatify-ai-bot.onrender.com",
               },
             },
           ],
@@ -32,66 +84,4 @@ bot.onText(/\/start/, async (msg) => {
       },
     }
   );
-});
-
-// Проверка подписки (Mini App дергает этот callback)
-bot.on("callback_query", async (query) => {
-  const chatId = query.message.chat.id;
-  const userId = query.from.id;
-
-  if (query.data !== "check_sub") return;
-
-  try {
-    const member = await bot.getChatMember(CHANNEL_USERNAME, userId);
-
-    const isSubscribed =
-      member.status === "member" ||
-      member.status === "administrator" ||
-      member.status === "creator";
-
-    if (isSubscribed) {
-      await bot.sendMessage(
-        chatId,
-        "✅ Подписка подтверждена!\n\nДоступ к бесплатному AI-инструменту открыт:",
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text: "🚀 Открыть AI-инструмент",
-                  url: FREE_TOOL_URL,
-                },
-              ],
-            ],
-          },
-        }
-      );
-    } else {
-      await bot.sendMessage(
-        chatId,
-        "❌ Подписка не найдена.\n\nПодпишись на канал и попробуй снова 👇",
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text: "🔔 Подписаться на канал",
-                  url: "https://t.me/neyrolooms",
-                },
-              ],
-              [
-                {
-                  text: "✅ Проверить подписку",
-                  callback_data: "check_sub",
-                },
-              ],
-            ],
-          },
-        }
-      );
-    }
-  } catch (err) {
-    console.error(err);
-    await bot.sendMessage(chatId, "⚠️ Ошибка сервера. Попробуй позже.");
-  }
 });
