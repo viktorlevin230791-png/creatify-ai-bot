@@ -162,21 +162,28 @@
   const tg = window.Telegram.WebApp;
   tg.expand();
 
+  /* ===== KEEP ALIVE: будим сервер при открытии Mini App ===== */
+  fetch("/ping").catch(() => {});
+
   async function checkSubscription() {
     const statusEl = document.getElementById("status");
     const toolBtn = document.getElementById("toolBtn");
 
     statusEl.classList.remove("hidden");
+    statusEl.className = "status";
     statusEl.textContent = "⏳ Проверяем подписку...";
 
     const user = tg.initDataUnsafe?.user;
     if (!user?.id) {
       statusEl.textContent = "❌ Открой через Telegram";
-      statusEl.className = "status error";
+      statusEl.classList.add("error");
       return;
     }
 
     try {
+      /* ===== KEEP ALIVE: перед проверкой ===== */
+      fetch("/ping").catch(() => {});
+
       const res = await fetch("/check-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -187,17 +194,19 @@
 
       if (data.ok) {
         statusEl.innerHTML = "🎉 <b>Подписка подтверждена</b>";
-        statusEl.className = "status success";
+        statusEl.classList.add("success");
+
         toolBtn.href = data.url;
         toolBtn.classList.remove("hidden");
+
         tg.HapticFeedback.notificationOccurred("success");
       } else {
         statusEl.textContent = "❌ Ты не подписан на канал";
-        statusEl.className = "status error";
+        statusEl.classList.add("error");
       }
     } catch (e) {
       statusEl.textContent = "⚠️ Ошибка сервера";
-      statusEl.className = "status error";
+      statusEl.classList.add("error");
     }
   }
 </script>
