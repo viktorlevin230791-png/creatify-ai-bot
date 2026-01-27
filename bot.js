@@ -6,11 +6,16 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/* ================== CONFIG ================== */
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const CHANNEL_USERNAME = "@neyrolooms";
+
+// ⚠️ ВАЖНО: используем ID канала, а не username
+const CHANNEL_ID = -1002822432167;
+
 const FREE_TOOL_URL =
   "https://lmarena.ai/ru/c/019bee6b-3942-77d2-86fd-10c03d281086";
 
+/* ================== BOT ================== */
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
 /* ================== WEB SERVER ================== */
@@ -22,7 +27,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-/* ===== API: проверка подписки ===== */
+/* ================== API: CHECK SUBSCRIPTION ================== */
 app.post("/check-subscription", async (req, res) => {
   try {
     const { userId } = req.body;
@@ -31,7 +36,7 @@ app.post("/check-subscription", async (req, res) => {
       return res.status(400).json({ ok: false });
     }
 
-    const member = await bot.getChatMember(CHANNEL_USERNAME, userId);
+    const member = await bot.getChatMember(CHANNEL_ID, userId);
 
     const isSubscribed = ["member", "administrator", "creator"].includes(
       member.status
@@ -46,11 +51,12 @@ app.post("/check-subscription", async (req, res) => {
       return res.json({ ok: false });
     }
   } catch (err) {
-    console.error(err);
+    console.error("CHECK SUB ERROR:", err);
     return res.status(500).json({ ok: false });
   }
 });
 
+/* ================== START SERVER ================== */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
   console.log("🚀 Mini App server running on port", PORT)
@@ -84,41 +90,4 @@ bot.onText(/\/start/, async (msg) => {
       },
     }
   );
-});
-/* ================== /post (публикация в канал) ================== */
-bot.onText(/\/post/, async (msg) => {
-  const chatId = msg.chat.id;
-
-  try {
-    await bot.sendMessage(
-      CHANNEL_ID,
-      `🎨 *Creatify AI Studio*
-
-🎁 Бесплатный доступ к AI-генератору изображений  
-🔒 Условие — подписка на канал
-
-👇 Нажми кнопку ниже, чтобы получить доступ`,
-      {
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: "🚀 Получить AI-доступ",
-                url: "https://t.me/" + (await bot.getMe()).username,
-              },
-            ],
-          ],
-        },
-      }
-    );
-
-    await bot.sendMessage(chatId, "✅ Пост успешно опубликован в канале");
-  } catch (err) {
-    console.error(err);
-    await bot.sendMessage(
-      chatId,
-      "❌ Ошибка. Проверь, что бот добавлен в канал администратором."
-    );
-  }
 });
