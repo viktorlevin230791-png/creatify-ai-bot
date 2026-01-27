@@ -1,115 +1,75 @@
 const TelegramBot = require('node-telegram-bot-api');
+const express = require('express');
 
-// Берём токен из Environment Variables (Render)
-const TOKEN = process.env.BOT_TOKEN;
+const token = process.env.BOT_TOKEN;
+const CHANNEL = process.env.CHANNEL_USERNAME || '@neyrolooms';
 
-if (!TOKEN) {
-  console.error('❌ BOT_TOKEN не найден');
+if (!token) {
+  console.error('EFATAL: Telegram Bot Token not provided!');
   process.exit(1);
 }
 
-// Запуск бота
-const bot = new TelegramBot(TOKEN, { polling: true });
+const bot = new TelegramBot(token, { polling: true });
+const app = express();
 
-console.log('🤖 Creatify AI Bot запущен');
+app.use(express.static('public'));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log('Web server running on port', PORT);
+});
 
 // ===== /start =====
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
 
-  const welcomeText = `👋 *Добро пожаловать в Creatify AI Studio*
+  await bot.sendMessage(
+    chatId,
+    `👋 *Добро пожаловать в Creatify AI Studio*
 
-Мы создаём *премиальные AI-инструменты* для:
-• контента  
-• брендов  
-• бизнеса  
-• экспертов  
+🎁 Ты получаешь *бесплатный доступ к AI-инструментам*:
+— генерация изображений  
+— визуалы под бизнес и рекламу  
 
-🎁 *Бесплатно ты можешь:*
-— протестировать AI-инструменты  
-— получить идеи и контент  
-— увидеть, как AI решает твои задачи  
+👉 Условие простое: подписка на наш канал.
 
-Выбери действие ниже 👇`;
-
-  await bot.sendMessage(chatId, welcomeText, {
-    parse_mode: 'Markdown',
-    reply_markup: {
-      inline_keyboard: [
-        [
-          { text: '🚀 Попробовать AI (бесплатно)', callback_data: 'try_ai' }
-        ],
-        [
-          { text: '🧠 Что умеет Creatify AI', callback_data: 'about_ai' }
-        ],
-        [
-          { text: '💎 Для бизнеса / брендов', callback_data: 'business' }
+Нажми кнопку ниже и запусти мини-приложение 👇`,
+    {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: '🚀 Открыть AI-инструменты',
+              web_app: {
+                url: 'https://creatify-ai-bot.onrender.com'
+              }
+            }
+          ]
         ]
-      ]
+      }
     }
-  });
+  );
 });
 
-// ===== КНОПКИ =====
-bot.on('callback_query', async (query) => {
-  const chatId = query.message.chat.id;
-  const data = query.data;
+// ===== Проверка подписки =====
+app.get('/check-subscription', async (req, res) => {
+  const userId = req.query.userId;
 
-  // Убираем "часики" у кнопок
-  await bot.answerCallbackQuery(query.id);
-
-  if (data === 'try_ai') {
-    await bot.sendMessage(
-      chatId,
-      `🚀 *Бесплатный AI-инструмент*
-
-Скоро здесь появится первый инструмент:
-— генерация идей  
-— контент под соцсети  
-— быстрые AI-решения  
-
-⚡ Мы запускаемся поэтапно. Ты уже внутри.`,
-      { parse_mode: 'Markdown' }
-    );
+  if (!userId) {
+    return res.json({ subscribed: false });
   }
 
-  if (data === 'about_ai') {
-    await bot.sendMessage(
-      chatId,
-      `🧠 *Creatify AI Studio*
+  try {
+    const member = await bot.getChatMember(CHANNEL, userId);
 
-Это AI-платформа нового поколения:
-— минимализм  
-— скорость  
-— практическая польза  
+    const ok =
+      member.status === 'member' ||
+      member.status === 'administrator' ||
+      member.status === 'creator';
 
-Без воды. Без лишних слов. Только результат.`,
-      { parse_mode: 'Markdown' }
-    );
-  }
-
-  if (data === 'business') {
-    await bot.sendMessage(
-      chatId,
-      `💎 *Для бизнеса и брендов*
-
-Мы разрабатываем:
-— кастомные AI-инструменты  
-— AI для контента и маркетинга  
-— автоматизацию процессов  
-
-📩 Свяжемся — когда ты будешь готов.`,
-      { parse_mode: 'Markdown' }
-    );
-  }
-});
-
-// ===== FALLBACK (на любые сообщения) =====
-bot.on('message', (msg) => {
-  if (msg.text && !msg.text.startsWith('/')) {
-    bot.sendMessage(
-      msg.chat.id,
-      'ℹ️ Используй кнопки ниже или команду /start'
-    );
+    res.json({ subscribed: ok });
+  } catch (err) {
+    res.json({ subscribed: false });
   }
 });
