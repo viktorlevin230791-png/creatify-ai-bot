@@ -28,8 +28,14 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
+/* ===== ROOT ===== */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+/* ===== PING (ВАЖНО) ===== */
+app.get("/ping", (req, res) => {
+  res.status(200).send("ok");
 });
 
 /* ================== API: CHECK SUB ================== */
