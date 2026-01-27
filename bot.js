@@ -85,3 +85,40 @@ bot.onText(/\/start/, async (msg) => {
     }
   );
 });
+/* ================== /post (публикация в канал) ================== */
+bot.onText(/\/post/, async (msg) => {
+  const chatId = msg.chat.id;
+
+  try {
+    await bot.sendMessage(
+      CHANNEL_ID,
+      `🎨 *Creatify AI Studio*
+
+🎁 Бесплатный доступ к AI-генератору изображений  
+🔒 Условие — подписка на канал
+
+👇 Нажми кнопку ниже, чтобы получить доступ`,
+      {
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: "🚀 Получить AI-доступ",
+                url: "https://t.me/" + (await bot.getMe()).username,
+              },
+            ],
+          ],
+        },
+      }
+    );
+
+    await bot.sendMessage(chatId, "✅ Пост успешно опубликован в канале");
+  } catch (err) {
+    console.error(err);
+    await bot.sendMessage(
+      chatId,
+      "❌ Ошибка. Проверь, что бот добавлен в канал администратором."
+    );
+  }
+});
