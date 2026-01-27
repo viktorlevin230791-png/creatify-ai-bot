@@ -1,35 +1,30 @@
 import TelegramBot from "node-telegram-bot-api";
-import express from "express";
-import fetch from "node-fetch";
 
-const token = process.env.BOT_TOKEN;
-const CHANNEL = "@neyrolooms";
+const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
-const bot = new TelegramBot(token, { polling: true });
-const app = express();
+const CHANNEL_USERNAME = "@neyrolooms";
+const FREE_TOOL_URL = "https://lmarena.ai/ru/c/019bee6b-3942-77d2-86fd-10c03d281086";
 
-app.use(express.json());
-app.use(express.static("public"));
-
-/* ---------- START ---------- */
+// /start
 bot.onText(/\/start/, async (msg) => {
+  const chatId = msg.chat.id;
+
   await bot.sendMessage(
-    msg.chat.id,
-    `✨ *Creatify AI Studio*
+    chatId,
+    `👋 Привет!
 
-Получите доступ к *бесплатному AI-инструменту*  
-для идей, контента и нейросервисов.
+Ты получаешь доступ к *бесплатному AI-инструменту* для генерации и экспериментов.
 
-👇 Нажмите кнопку ниже, чтобы начать`,
+📌 Условие одно — подписка на наш Telegram-канал.`,
     {
       parse_mode: "Markdown",
       reply_markup: {
         inline_keyboard: [
           [
             {
-              text: "🚀 Получить бесплатный AI",
+              text: "🚀 Попробовать AI бесплатно",
               web_app: {
-                url: "https://creatify-ai-bot.onrender.com",
+                url: "https://creatify-ai-bot.onrender.com", // твой Mini App
               },
             },
           ],
@@ -39,24 +34,64 @@ bot.onText(/\/start/, async (msg) => {
   );
 });
 
-/* ---------- CHECK SUB ---------- */
-app.post("/check-subscription", async (req, res) => {
-  const { userId } = req.body;
+// Проверка подписки (Mini App дергает этот callback)
+bot.on("callback_query", async (query) => {
+  const chatId = query.message.chat.id;
+  const userId = query.from.id;
+
+  if (query.data !== "check_sub") return;
 
   try {
-    const member = await bot.getChatMember(CHANNEL, userId);
+    const member = await bot.getChatMember(CHANNEL_USERNAME, userId);
 
-    if (["member", "administrator", "creator"].includes(member.status)) {
-      return res.json({ subscribed: true });
+    const isSubscribed =
+      member.status === "member" ||
+      member.status === "administrator" ||
+      member.status === "creator";
+
+    if (isSubscribed) {
+      await bot.sendMessage(
+        chatId,
+        "✅ Подписка подтверждена!\n\nДоступ к бесплатному AI-инструменту открыт:",
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: "🚀 Открыть AI-инструмент",
+                  url: FREE_TOOL_URL,
+                },
+              ],
+            ],
+          },
+        }
+      );
+    } else {
+      await bot.sendMessage(
+        chatId,
+        "❌ Подписка не найдена.\n\nПодпишись на канал и попробуй снова 👇",
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: "🔔 Подписаться на канал",
+                  url: "https://t.me/neyrolooms",
+                },
+              ],
+              [
+                {
+                  text: "✅ Проверить подписку",
+                  callback_data: "check_sub",
+                },
+              ],
+            ],
+          },
+        }
+      );
     }
-
-    return res.json({ subscribed: false });
   } catch (err) {
-    console.error("SUB CHECK ERROR:", err.message);
-    return res.status(500).json({ error: "subscription_check_failed" });
+    console.error(err);
+    await bot.sendMessage(chatId, "⚠️ Ошибка сервера. Попробуй позже.");
   }
-});
-
-app.listen(3000, () => {
-  console.log("Server started");
 });
