@@ -1,3 +1,4 @@
+
 import TelegramBot from "node-telegram-bot-api";
 import express from "express";
 import path from "path";
@@ -9,7 +10,7 @@ const __dirname = path.dirname(__filename);
 /* ================== CONFIG ================== */
 const BOT_TOKEN = process.env.BOT_TOKEN;
 
-// ⚠️ ВАЖНО: используем ID канала, а не username
+// используем ID канала
 const CHANNEL_ID = -1002822432167;
 
 const FREE_TOOL_URL =
@@ -17,6 +18,18 @@ const FREE_TOOL_URL =
 
 /* ================== BOT ================== */
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+
+/* ===== FIX: убираем 409 Conflict из логов ===== */
+bot.on("polling_error", (err) => {
+  if (
+    err.code === "ETELEGRAM" &&
+    err.message &&
+    err.message.includes("409")
+  ) {
+    return; // просто игнорируем
+  }
+  console.error("Polling error:", err);
+});
 
 /* ================== WEB SERVER ================== */
 const app = express();
@@ -68,9 +81,9 @@ bot.onText(/\/start/, async (msg) => {
 
   await bot.sendMessage(
     chatId,
-    `👋 *Creatify AI Studio*
+    `👋 Creatify AI Studio
 
-Получи доступ к *бесплатному AI-инструменту*  
+Получи доступ к бесплатному AI-инструменту
 после подписки на наш Telegram-канал.
 
 👇 Нажми кнопку ниже:`,
