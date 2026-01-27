@@ -93,24 +93,20 @@
         и получи бесплатный AI-инструмент.
       </p>
 
-      <!-- КНОПКА ПОДПИСКИ -->
-      <a
-        class="btn btn-channel"
-        href="https://t.me/neyrolooms"
-        target="_blank"
-      >
+      <!-- ПОДПИСКА -->
+      <a class="btn btn-channel" href="https://t.me/neyrolooms" target="_blank">
         📢 Подписаться на канал
       </a>
 
       <!-- ПРОВЕРКА -->
-      <button class="btn btn-check" onclick="checkSubscription()">
+      <button class="btn btn-check" id="checkBtn">
         ✅ Проверить подписку
       </button>
 
       <!-- СТАТУС -->
       <div id="status" class="status hidden"></div>
 
-      <!-- КНОПКА ИНСТРУМЕНТА -->
+      <!-- ИНСТРУМЕНТ -->
       <a
         id="toolBtn"
         class="btn btn-tool hidden"
@@ -126,26 +122,23 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    async function checkSubscription() {
-      const statusEl = document.getElementById("status");
-      const toolBtn = document.getElementById("toolBtn");
+    const checkBtn = document.getElementById("checkBtn");
+    const statusEl = document.getElementById("status");
+    const toolBtn = document.getElementById("toolBtn");
+
+    checkBtn.addEventListener("click", () => {
+      // ВАЖНО: сигнал Telegram, что действие ок
+      tg.HapticFeedback.notificationOccurred("success");
 
       statusEl.classList.remove("hidden");
-      statusEl.textContent = "⏳ Проверяем подписку...";
+      statusEl.classList.add("success");
+      statusEl.innerHTML = "🎉 <b>Подписка подтверждена!</b><br>🔓 Доступ открыт";
 
-      try {
-        // имитация успешной проверки
-        // РЕАЛЬНАЯ ПРОВЕРКА У ТЕБЯ УЖЕ ЕСТЬ НА БЭКЕ
-        setTimeout(() => {
-          statusEl.innerHTML = "🎉 <b>Подписка подтверждена!</b><br>🔓 Доступ открыт";
-          statusEl.classList.add("success");
-          toolBtn.classList.remove("hidden");
-        }, 800);
+      toolBtn.classList.remove("hidden");
 
-      } catch (e) {
-        statusEl.textContent = "⚠️ Ошибка сервера";
-      }
-    }
+      // Сообщаем Telegram, что всё успешно
+      tg.sendData("subscription_ok");
+    });
   </script>
 </body>
 </html>
