@@ -1,35 +1,30 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-const userId = tg.initDataUnsafe?.user?.id;
-const CHANNEL_LINK = 'https://t.me/neyrolooms';
+const checkBtn = document.getElementById("checkBtn");
+const result = document.getElementById("result");
 
-document.getElementById('subBtn').href = CHANNEL_LINK;
+checkBtn.onclick = async () => {
+  result.innerText = "⏳ Проверяем подписку...";
 
-document.getElementById('checkBtn').onclick = async () => {
-  const result = document.getElementById('result');
+  try {
+    const res = await fetch("/check-subscription", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: tg.initDataUnsafe.user.id,
+      }),
+    });
 
-  if (!userId) {
-    result.innerHTML = '❌ Не удалось определить пользователя Telegram';
-    return;
-  }
+    const data = await res.json();
 
-  const res = await fetch(`/check-subscription?userId=${userId}`);
-  const data = await res.json();
-
-  if (data.subscribed) {
-    result.innerHTML = `
-      🎉 <b>Подписка подтверждена!</b><br><br>
-      🔓 Доступ к бесплатному AI-инструменту открыт
-      <br><br>
-      <button class="btn primary">
-        🎨 Запустить генератор изображений
-      </button>
-    `;
-  } else {
-    result.innerHTML = `
-      ❌ <b>Подписка не найдена</b><br>
-      Подпишись на канал и нажми «Проверить подписку»
-    `;
+    if (data.subscribed) {
+      result.innerHTML = "🎉 Подписка подтверждена!<br>🔓 Доступ открыт";
+    } else {
+      result.innerHTML =
+        "❌ Подписка не найдена<br>Подпишись и нажми «Проверить»";
+    }
+  } catch (e) {
+    result.innerText = "⚠️ Ошибка сервера";
   }
 };
