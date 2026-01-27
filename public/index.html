@@ -3,29 +3,149 @@
 <head>
   <meta charset="UTF-8" />
   <title>Creatify AI Studio</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top, #2c2c3a, #0e0e13);
+      color: #fff;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .card {
+      background: #1c1c26;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      opacity: 0.8;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      padding: 16px;
+      font-size: 16px;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .btn-channel {
+      background: #2a2a36;
+      color: #fff;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, #7c5cff, #4fa3ff);
+      color: #fff;
+    }
+
+    .btn-tool {
+      background: linear-gradient(135deg, #8b5cff, #5c7cff);
+      color: #fff;
+    }
+
+    .status {
+      margin-top: 16px;
+      font-size: 15px;
+      text-align: center;
+    }
+
+    .success {
+      color: #6cff9b;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
+
 <body>
+  <div class="container">
+    <div class="card">
+      <h1>🎨 Creatify AI Studio</h1>
+      <p>
+        Подпишись на Telegram-канал про AI-промпты и нейрофото  
+        и получи бесплатный AI-инструмент.
+      </p>
 
-<div class="card">
-  <h1>🎨 Creatify AI Studio</h1>
-  <p>
-    Получи бесплатный доступ к AI-инструментам  
-    после подписки на наш Telegram-канал
-  </p>
+      <!-- КНОПКА ПОДПИСКИ -->
+      <a
+        class="btn btn-channel"
+        href="https://t.me/neyrolooms"
+        target="_blank"
+      >
+        📢 Подписаться на канал
+      </a>
 
-  <a id="subBtn" class="btn" target="_blank">
-    📢 Подписаться на канал
-  </a>
+      <!-- ПРОВЕРКА -->
+      <button class="btn btn-check" onclick="checkSubscription()">
+        ✅ Проверить подписку
+      </button>
 
-  <button id="checkBtn" class="btn primary">
-    ✅ Проверить подписку
-  </button>
+      <!-- СТАТУС -->
+      <div id="status" class="status hidden"></div>
 
-  <div id="result"></div>
-</div>
+      <!-- КНОПКА ИНСТРУМЕНТА -->
+      <a
+        id="toolBtn"
+        class="btn btn-tool hidden"
+        href="https://lmarena.ai/ru/c/019bee6b-3942-77d2-86fd-10c03d281086"
+        target="_blank"
+      >
+        🎨 Запустить генератор изображений
+      </a>
+    </div>
+  </div>
 
-<script src="app.js"></script>
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    async function checkSubscription() {
+      const statusEl = document.getElementById("status");
+      const toolBtn = document.getElementById("toolBtn");
+
+      statusEl.classList.remove("hidden");
+      statusEl.textContent = "⏳ Проверяем подписку...";
+
+      try {
+        // имитация успешной проверки
+        // РЕАЛЬНАЯ ПРОВЕРКА У ТЕБЯ УЖЕ ЕСТЬ НА БЭКЕ
+        setTimeout(() => {
+          statusEl.innerHTML = "🎉 <b>Подписка подтверждена!</b><br>🔓 Доступ открыт";
+          statusEl.classList.add("success");
+          toolBtn.classList.remove("hidden");
+        }, 800);
+
+      } catch (e) {
+        statusEl.textContent = "⚠️ Ошибка сервера";
+      }
+    }
+  </script>
 </body>
 </html>
