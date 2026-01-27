@@ -1,75 +1,62 @@
-const TelegramBot = require('node-telegram-bot-api');
-const express = require('express');
+import TelegramBot from "node-telegram-bot-api";
+import express from "express";
+import fetch from "node-fetch";
 
 const token = process.env.BOT_TOKEN;
-const CHANNEL = process.env.CHANNEL_USERNAME || '@neyrolooms';
-
-if (!token) {
-  console.error('EFATAL: Telegram Bot Token not provided!');
-  process.exit(1);
-}
+const CHANNEL = "@neyrolooms";
 
 const bot = new TelegramBot(token, { polling: true });
 const app = express();
 
-app.use(express.static('public'));
+app.use(express.json());
+app.use(express.static("public"));
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log('Web server running on port', PORT);
-});
-
-// ===== /start =====
+/* ---------- START ---------- */
 bot.onText(/\/start/, async (msg) => {
-  const chatId = msg.chat.id;
-
   await bot.sendMessage(
-    chatId,
-    `👋 *Добро пожаловать в Creatify AI Studio*
+    msg.chat.id,
+    `✨ *Creatify AI Studio*
 
-🎁 Ты получаешь *бесплатный доступ к AI-инструментам*:
-— генерация изображений  
-— визуалы под бизнес и рекламу  
+Получите доступ к *бесплатному AI-инструменту*  
+для идей, контента и нейросервисов.
 
-👉 Условие простое: подписка на наш канал.
-
-Нажми кнопку ниже и запусти мини-приложение 👇`,
+👇 Нажмите кнопку ниже, чтобы начать`,
     {
-      parse_mode: 'Markdown',
+      parse_mode: "Markdown",
       reply_markup: {
         inline_keyboard: [
           [
             {
-              text: '🚀 Открыть AI-инструменты',
+              text: "🚀 Получить бесплатный AI",
               web_app: {
-                url: 'https://creatify-ai-bot.onrender.com'
-              }
-            }
-          ]
-        ]
-      }
+                url: "https://creatify-ai-bot.onrender.com",
+              },
+            },
+          ],
+        ],
+      },
     }
   );
 });
 
-// ===== Проверка подписки =====
-app.get('/check-subscription', async (req, res) => {
-  const userId = req.query.userId;
-
-  if (!userId) {
-    return res.json({ subscribed: false });
-  }
+/* ---------- CHECK SUB ---------- */
+app.post("/check-subscription", async (req, res) => {
+  const { userId } = req.body;
 
   try {
     const member = await bot.getChatMember(CHANNEL, userId);
 
-    const ok =
-      member.status === 'member' ||
-      member.status === 'administrator' ||
-      member.status === 'creator';
+    if (["member", "administrator", "creator"].includes(member.status)) {
+      return res.json({ subscribed: true });
+    }
 
-    res.json({ subscribed: ok });
+    return res.json({ subscribed: false });
   } catch (err) {
-    res.json({ subscribed: false });
+    console.error("SUB CHECK ERROR:", err.message);
+    return res.status(500).json({ error: "subscription_check_failed" });
   }
+});
+
+app.listen(3000, () => {
+  console.log("Server started");
 });
