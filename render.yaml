@@ -1,0 +1,10 @@
+services:
+  - type: worker
+    name: creatify-ai-bot
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node bot.js
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
