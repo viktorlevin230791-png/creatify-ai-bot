@@ -1,105 +1,205 @@
-import TelegramBot from "node-telegram-bot-api";
-import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Creatify AI Studio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+  <style>
+    * { box-sizing: border-box; }
 
-/* ================== CONFIG ================== */
-const BOT_TOKEN = process.env.BOT_TOKEN;
-
-// используем ID канала
-const CHANNEL_ID = -1002822432167;
-
-const FREE_TOOL_URL =
-  "https://lmarena.ai/ru/c/019bee6b-3942-77d2-86fd-10c03d281086";
-
-/* ================== BOT ================== */
-const bot = new TelegramBot(BOT_TOKEN, { polling: true });
-
-/* ===== FIX: убираем 409 Conflict из логов ===== */
-bot.on("polling_error", (err) => {
-  if (
-    err.code === "ETELEGRAM" &&
-    err.message &&
-    err.message.includes("409")
-  ) {
-    return;
-  }
-  console.error("Polling error:", err);
-});
-
-/* ================== WEB SERVER ================== */
-const app = express();
-app.use(express.json());
-app.use(express.static("public"));
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-/* ================== API: CHECK SUBSCRIPTION ================== */
-app.post("/check-subscription", async (req, res) => {
-  try {
-    const { userId } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({ ok: false });
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+      background:
+        radial-gradient(1200px 600px at 50% -200px, #6f5bff33, transparent),
+        radial-gradient(800px 400px at 100% 0%, #4fa3ff22, transparent),
+        #0b0c12;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
-    const member = await bot.getChatMember(CHANNEL_ID, userId);
+    .container {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
 
-    const isSubscribed = ["member", "administrator", "creator"].includes(
-      member.status
-    );
+    .card {
+      background: linear-gradient(
+        180deg,
+        rgba(255,255,255,0.08),
+        rgba(255,255,255,0.02)
+      );
+      backdrop-filter: blur(20px);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow:
+        0 20px 60px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+    }
 
-    if (isSubscribed) {
-      return res.json({
-        ok: true,
-        url: FREE_TOOL_URL,
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .logo-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #7c5cff, #4fa3ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+
+    h1 { font-size: 24px; margin: 0; }
+
+    .subtitle {
+      margin: 14px 0 22px;
+      font-size: 15px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.75);
+    }
+
+    .btn {
+      width: 100%;
+      height: 54px;
+      border-radius: 14px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .btn-channel {
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+    }
+
+    .btn-check {
+      background: linear-gradient(135deg, #6f5bff, #4fa3ff);
+      color: #fff;
+    }
+
+    .btn-tool {
+      margin-top: 20px;
+      height: 58px;
+      font-size: 17px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #8f7bff, #5c7cff);
+    }
+
+    .hidden { display: none; }
+
+    .status {
+      margin-top: 16px;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .success { color: #6cffb2; }
+    .error { color: #ff7c7c; }
+
+    .footer {
+      margin-top: 22px;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <div class="card">
+
+    <div class="logo">
+      <div class="logo-icon">🎨</div>
+      <h1>Creatify AI Studio</h1>
+    </div>
+
+    <div class="subtitle">
+      Получи <b>бесплатный доступ</b> к AI-инструментам  
+      после подписки на наш Telegram-канал
+    </div>
+
+    <a class="btn btn-channel" href="https://t.me/neyrolooms" target="_blank">
+      📢 Подписаться на канал
+    </a>
+
+    <button class="btn btn-check" onclick="checkSubscription()">
+      ✅ Проверить подписку
+    </button>
+
+    <div id="status" class="status hidden"></div>
+
+    <a id="toolBtn" class="btn btn-tool hidden" target="_blank">
+      🚀 Запустить AI-генератор
+    </a>
+
+    <div class="footer">
+      © Creatify AI · Telegram @neyrolooms
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.expand();
+
+  async function checkSubscription() {
+    const statusEl = document.getElementById("status");
+    const toolBtn = document.getElementById("toolBtn");
+
+    statusEl.classList.remove("hidden");
+    statusEl.textContent = "⏳ Проверяем подписку...";
+
+    const user = tg.initDataUnsafe?.user;
+    if (!user?.id) {
+      statusEl.textContent = "❌ Открой через Telegram";
+      statusEl.className = "status error";
+      return;
+    }
+
+    try {
+      const res = await fetch("/check-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id })
       });
-    } else {
-      return res.json({ ok: false });
+
+      const data = await res.json();
+
+      if (data.ok) {
+        statusEl.innerHTML = "🎉 <b>Подписка подтверждена</b>";
+        statusEl.className = "status success";
+        toolBtn.href = data.url;
+        toolBtn.classList.remove("hidden");
+        tg.HapticFeedback.notificationOccurred("success");
+      } else {
+        statusEl.textContent = "❌ Ты не подписан на канал";
+        statusEl.className = "status error";
+      }
+    } catch (e) {
+      statusEl.textContent = "⚠️ Ошибка сервера";
+      statusEl.className = "status error";
     }
-  } catch (err) {
-    console.error("CHECK SUB ERROR:", err);
-    return res.status(500).json({ ok: false });
   }
-});
-
-/* ================== START SERVER ================== */
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log("🚀 Mini App server running on port", PORT)
-);
-
-/* ================== /start ================== */
-bot.onText(/\/start/, async (msg) => {
-  const chatId = msg.chat.id;
-
-  await bot.sendMessage(
-    chatId,
-    `👋 Creatify AI Studio
-
-Получи доступ к бесплатному AI-инструменту
-после подписки на наш Telegram-канал.
-
-👇 Нажми кнопку ниже:`,
-    {
-      parse_mode: "Markdown",
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: "🚀 Получить бесплатный AI-инструмент",
-              web_app: {
-                url: "https://creatify-ai-bot.onrender.com",
-              },
-            },
-          ],
-        ],
-      },
-    }
-  );
-});
+</script>
+</body>
+</html>
