@@ -1,0 +1,7 @@
+{
+  "name": "creatify-ai-bot",
+  "type": "module",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.64.0"
+  }
+}
