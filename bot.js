@@ -3,20 +3,26 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 
+/* ================== PATH ================== */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /* ================== CONFIG ================== */
 const BOT_TOKEN = process.env.BOT_TOKEN;
 
-// ⚠️ ВАЖНО: используем ID канала, а не username
+// ⚠️ ИСПОЛЬЗУЕМ ID КАНАЛА (ЭТО ПРАВИЛЬНО)
 const CHANNEL_ID = -1002822432167;
 
 const FREE_TOOL_URL =
   "https://lmarena.ai/ru/c/019bee6b-3942-77d2-86fd-10c03d281086";
 
 /* ================== BOT ================== */
-const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+const bot = new TelegramBot(BOT_TOKEN, {
+  polling: {
+    interval: 300,
+    autoStart: true,
+  },
+});
 
 /* ================== WEB SERVER ================== */
 const app = express();
@@ -33,10 +39,15 @@ app.post("/check-subscription", async (req, res) => {
     const { userId } = req.body;
 
     if (!userId) {
+      console.log("❌ userId not provided");
       return res.status(400).json({ ok: false });
     }
 
+    console.log("🔍 Checking subscription for user:", userId);
+
     const member = await bot.getChatMember(CHANNEL_ID, userId);
+
+    console.log("👤 Member status:", member.status);
 
     const isSubscribed = ["member", "administrator", "creator"].includes(
       member.status
@@ -51,16 +62,16 @@ app.post("/check-subscription", async (req, res) => {
       return res.json({ ok: false });
     }
   } catch (err) {
-    console.error("CHECK SUB ERROR:", err);
+    console.error("❌ CHECK SUB ERROR:", err.message);
     return res.status(500).json({ ok: false });
   }
 });
 
 /* ================== START SERVER ================== */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log("🚀 Mini App server running on port", PORT)
-);
+app.listen(PORT, () => {
+  console.log("🚀 Mini App server running on port", PORT);
+});
 
 /* ================== /start ================== */
 bot.onText(/\/start/, async (msg) => {
@@ -90,4 +101,9 @@ bot.onText(/\/start/, async (msg) => {
       },
     }
   );
+});
+
+/* ================== SAFE ERRORS ================== */
+bot.on("polling_error", (error) => {
+  console.error("❌ POLLING ERROR:", error.message);
 });
