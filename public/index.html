@@ -3,212 +3,515 @@
 <head>
   <meta charset="UTF-8" />
   <title>Creatify AI Studio</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg: #080a12;
+      --card: rgba(20, 24, 42, 0.72);
+      --white: #ffffff;
+      --muted: rgba(255, 255, 255, 0.66);
+      --border: rgba(255, 255, 255, 0.11);
+      --blue: #4fa3ff;
+      --purple: #7c5cff;
+      --green: #65ffad;
+      --red: #ff7c7c;
+    }
 
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        radial-gradient(1200px 600px at 50% -200px, #6f5bff33, transparent),
-        radial-gradient(800px 400px at 100% 0%, #4fa3ff22, transparent),
-        #0b0c12;
-      color: #fff;
+        radial-gradient(900px 450px at 20% -10%, rgba(124, 92, 255, 0.45), transparent 60%),
+        radial-gradient(700px 420px at 100% 0%, rgba(79, 163, 255, 0.3), transparent 55%),
+        radial-gradient(600px 400px at 50% 100%, rgba(101, 255, 173, 0.09), transparent 60%),
+        var(--bg);
+      color: var(--white);
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
     }
 
     .container {
       width: 100%;
-      max-width: 420px;
-      padding: 20px;
+      max-width: 440px;
+      padding: 22px;
     }
 
     .card {
-      background: linear-gradient(
-        180deg,
-        rgba(255,255,255,0.08),
-        rgba(255,255,255,0.02)
-      );
-      backdrop-filter: blur(20px);
-      border-radius: 28px;
+      position: relative;
       padding: 28px;
+      border-radius: 34px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025)),
+        var(--card);
+      border: 1px solid var(--border);
       box-shadow:
-        0 20px 60px rgba(0,0,0,0.6),
-        inset 0 1px 0 rgba(255,255,255,0.08);
+        0 32px 90px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(24px);
+      overflow: hidden;
     }
 
-    .logo {
+    .card::before {
+      content: "";
+      position: absolute;
+      top: -80px;
+      right: -70px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), var(--blue));
+      filter: blur(42px);
+      opacity: 0.42;
+    }
+
+    .top {
+      position: relative;
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
+      gap: 15px;
+      margin-bottom: 20px;
     }
 
     .logo-icon {
-      width: 52px;
-      height: 52px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #7c5cff, #4fa3ff);
+      width: 66px;
+      height: 66px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, var(--purple), var(--blue));
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 26px;
+      font-size: 34px;
+      box-shadow: 0 18px 42px rgba(79, 163, 255, 0.25);
     }
 
-    h1 { font-size: 24px; margin: 0; }
+    h1 {
+      margin: 0;
+      font-size: 29px;
+      line-height: 1.05;
+      letter-spacing: -0.8px;
+      font-weight: 850;
+    }
 
     .subtitle {
-      margin: 14px 0 22px;
-      font-size: 15px;
+      position: relative;
+      margin: 0 0 22px;
+      font-size: 16px;
       line-height: 1.5;
-      color: rgba(255,255,255,0.75);
+      color: var(--muted);
+    }
+
+    .subtitle b {
+      color: var(--white);
+    }
+
+    .benefits {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .benefit {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      padding: 11px 13px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.055);
+      border: 1px solid rgba(255, 255, 255, 0.075);
+      color: rgba(255, 255, 255, 0.74);
+      font-size: 14px;
+    }
+
+    .benefit.done {
+      color: var(--green);
+      background: rgba(101, 255, 173, 0.08);
+      border-color: rgba(101, 255, 173, 0.22);
+    }
+
+    .actions {
+      display: grid;
+      gap: 13px;
     }
 
     .btn {
       width: 100%;
-      height: 54px;
-      border-radius: 14px;
+      min-height: 58px;
+      border-radius: 20px;
       border: none;
-      font-size: 16px;
-      font-weight: 600;
+      padding: 15px 18px;
+      font-size: 17px;
+      font-weight: 800;
       cursor: pointer;
+      text-decoration: none;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
-      margin-top: 14px;
+      color: var(--white);
+      transition: transform 0.16s ease, opacity 0.16s ease, filter 0.16s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn:disabled {
+      opacity: 0.75;
+      cursor: not-allowed;
     }
 
     .btn-channel {
-      background: rgba(255,255,255,0.06);
-      color: #fff;
+      background: rgba(255, 255, 255, 0.075);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .btn-check {
-      background: linear-gradient(135deg, #6f5bff, #4fa3ff);
-      color: #fff;
+      background: linear-gradient(135deg, var(--purple), var(--blue));
+      box-shadow: 0 16px 36px rgba(79, 163, 255, 0.24);
     }
 
     .btn-tool {
-      margin-top: 20px;
-      height: 58px;
-      font-size: 17px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #8f7bff, #5c7cff);
+      display: none;
+      background: linear-gradient(135deg, #28e39a, #29a8ff);
+      box-shadow: 0 18px 42px rgba(40, 227, 154, 0.22);
     }
-
-    .hidden { display: none; }
 
     .status {
+      display: none;
       margin-top: 16px;
-      font-size: 14px;
+      padding: 14px 15px;
+      border-radius: 18px;
       text-align: center;
+      font-size: 14px;
+      line-height: 1.35;
+      font-weight: 700;
     }
 
-    .success { color: #6cffb2; }
-    .error { color: #ff7c7c; }
+    .status.success {
+      display: block;
+      color: var(--green);
+      background: rgba(101, 255, 173, 0.08);
+      border: 1px solid rgba(101, 255, 173, 0.2);
+    }
+
+    .status.error {
+      display: block;
+      color: var(--red);
+      background: rgba(255, 124, 124, 0.08);
+      border: 1px solid rgba(255, 124, 124, 0.2);
+    }
+
+    .status.loading {
+      display: block;
+      color: rgba(255, 255, 255, 0.82);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
 
     .footer {
-      margin-top: 22px;
+      margin-top: 24px;
       text-align: center;
       font-size: 12px;
-      color: rgba(255,255,255,0.4);
+      color: rgba(255, 255, 255, 0.36);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .loader {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.25);
+      border-top-color: #fff;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 380px) {
+      .container {
+        padding: 16px;
+      }
+
+      .card {
+        padding: 24px;
+        border-radius: 30px;
+      }
+
+      h1 {
+        font-size: 26px;
+      }
+
+      .logo-icon {
+        width: 60px;
+        height: 60px;
+      }
     }
   </style>
 </head>
 
 <body>
-<div class="container">
-  <div class="card">
+  <div class="container">
+    <div class="card">
 
-    <div class="logo">
-      <div class="logo-icon">🎨</div>
-      <h1>Creatify AI Studio</h1>
+      <div class="top">
+        <div class="logo-icon">🎨</div>
+        <h1>Creatify AI Studio</h1>
+      </div>
+
+      <p class="subtitle">
+        Получи <b>бесплатный доступ</b> к AI-инструментам после подписки на наш Telegram-канал.
+      </p>
+
+      <div class="benefits">
+        <div id="stepSubscribe" class="benefit">
+          📢 Подпишись на Telegram-канал
+        </div>
+        <div id="stepCheck" class="benefit">
+          ✅ Подтверди подписку
+        </div>
+        <div id="stepTool" class="benefit">
+          🚀 Получи доступ к AI-генератору
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="subscribeBtn" class="btn btn-channel">
+          📢 Подписаться на канал
+        </button>
+
+        <button id="checkBtn" class="btn btn-check">
+          ✅ Проверить подписку
+        </button>
+
+        <button id="toolBtn" class="btn btn-tool">
+          🚀 Запустить AI-генератор
+        </button>
+      </div>
+
+      <div id="status" class="status"></div>
+
+      <div class="footer">
+        © Creatify AI · Telegram @neyrolooms
+      </div>
+
     </div>
-
-    <div class="subtitle">
-      Получи <b>бесплатный доступ</b> к AI-инструментам  
-      после подписки на наш Telegram-канал
-    </div>
-
-    <a class="btn btn-channel" href="https://t.me/neyrolooms" target="_blank">
-      📢 Подписаться на канал
-    </a>
-
-    <button class="btn btn-check" onclick="checkSubscription()">
-      ✅ Проверить подписку
-    </button>
-
-    <div id="status" class="status hidden"></div>
-
-    <a id="toolBtn" class="btn btn-tool hidden" target="_blank">
-      🚀 Запустить AI-генератор
-    </a>
-
-    <div class="footer">
-      © Creatify AI · Telegram @neyrolooms
-    </div>
-
   </div>
-</div>
 
-<script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
+  <script>
+    const tg = window.Telegram?.WebApp;
 
-  /* ===== KEEP ALIVE: будим сервер при открытии Mini App ===== */
-  fetch("/ping").catch(() => {});
+    if (tg) {
+      tg.ready();
+      tg.expand();
+    }
 
-  async function checkSubscription() {
-    const statusEl = document.getElementById("status");
+    const CHANNEL_URL = "https://t.me/neyrolooms";
+
+    const subscribeBtn = document.getElementById("subscribeBtn");
+    const checkBtn = document.getElementById("checkBtn");
     const toolBtn = document.getElementById("toolBtn");
+    const statusEl = document.getElementById("status");
 
-    statusEl.classList.remove("hidden");
-    statusEl.className = "status";
-    statusEl.textContent = "⏳ Проверяем подписку...";
+    const stepSubscribe = document.getElementById("stepSubscribe");
+    const stepCheck = document.getElementById("stepCheck");
+    const stepTool = document.getElementById("stepTool");
 
-    const user = tg.initDataUnsafe?.user;
-    if (!user?.id) {
-      statusEl.textContent = "❌ Открой через Telegram";
-      statusEl.classList.add("error");
-      return;
+    let toolUrl = localStorage.getItem("creatify_tool_url") || "";
+
+    fetch("/ping").catch(() => {});
+
+    function getUserId() {
+      return tg?.initDataUnsafe?.user?.id;
     }
 
-    try {
-      /* ===== KEEP ALIVE: перед проверкой ===== */
-      fetch("/ping").catch(() => {});
+    function haptic(type = "success") {
+      try {
+        tg?.HapticFeedback?.notificationOccurred(type);
+      } catch (e) {}
+    }
 
-      const res = await fetch("/check-subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id })
-      });
+    function showStatus(type, text) {
+      statusEl.className = "status " + type;
+      statusEl.innerHTML = text;
+    }
 
-      const data = await res.json();
+    function hideStatus() {
+      statusEl.className = "status";
+      statusEl.textContent = "";
+    }
 
-      if (data.ok) {
-        statusEl.innerHTML = "🎉 <b>Подписка подтверждена</b>";
-        statusEl.classList.add("success");
+    function setButtonLoading(button, text) {
+      button.disabled = true;
+      button.innerHTML = `<span class="loader"></span>${text}`;
+    }
 
-        toolBtn.href = data.url;
-        toolBtn.classList.remove("hidden");
+    function resetCheckButton() {
+      checkBtn.disabled = false;
+      checkBtn.innerHTML = "✅ Проверить подписку";
+    }
 
-        tg.HapticFeedback.notificationOccurred("success");
-      } else {
-        statusEl.textContent = "❌ Ты не подписан на канал";
-        statusEl.classList.add("error");
+    function resetToolButton() {
+      toolBtn.disabled = false;
+      toolBtn.innerHTML = "🚀 Запустить AI-генератор";
+    }
+
+    function showLockedState() {
+      subscribeBtn.classList.remove("hidden");
+      checkBtn.classList.remove("hidden");
+      toolBtn.style.display = "none";
+
+      stepSubscribe.classList.remove("done");
+      stepCheck.classList.remove("done");
+      stepTool.classList.remove("done");
+
+      localStorage.removeItem("creatify_access_granted");
+      localStorage.removeItem("creatify_tool_url");
+
+      toolUrl = "";
+    }
+
+    function showUnlockedState(url) {
+      subscribeBtn.classList.add("hidden");
+      checkBtn.classList.add("hidden");
+      toolBtn.style.display = "flex";
+
+      stepSubscribe.classList.add("done");
+      stepCheck.classList.add("done");
+      stepTool.classList.add("done");
+
+      if (url) {
+        toolUrl = url;
+        localStorage.setItem("creatify_tool_url", url);
       }
-    } catch (e) {
-      statusEl.textContent = "⚠️ Ошибка сервера";
-      statusEl.classList.add("error");
+
+      localStorage.setItem("creatify_access_granted", "true");
+
+      showStatus("success", "🎉 <b>Подписка подтверждена.</b><br>AI-инструмент открыт.");
     }
-  }
-</script>
+
+    async function checkSubscription(options = {}) {
+      const silent = options.silent || false;
+      const userId = getUserId();
+
+      if (!userId) {
+        showStatus("error", "❌ Открой Mini App через Telegram-бота");
+        haptic("error");
+        return false;
+      }
+
+      if (!silent) {
+        hideStatus();
+        setButtonLoading(checkBtn, "Проверяем...");
+        showStatus("loading", "⏳ Проверяем подписку...");
+      }
+
+      try {
+        fetch("/ping").catch(() => {});
+
+        const res = await fetch("/check-subscription", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ userId })
+        });
+
+        const data = await res.json();
+
+        if (data.ok) {
+          showUnlockedState(data.url);
+          haptic("success");
+          return true;
+        }
+
+        showLockedState();
+
+        if (!silent) {
+          showStatus("error", data.message || "❌ Ты не подписан на канал");
+          haptic("error");
+        }
+
+        return false;
+      } catch (e) {
+        console.error(e);
+
+        if (!silent) {
+          showStatus("error", "⚠️ Ошибка сервера. Попробуй ещё раз.");
+          haptic("error");
+        }
+
+        return false;
+      } finally {
+        if (!silent) {
+          resetCheckButton();
+        }
+      }
+    }
+
+    subscribeBtn.addEventListener("click", () => {
+      if (tg?.openTelegramLink) {
+        tg.openTelegramLink(CHANNEL_URL);
+      } else {
+        window.open(CHANNEL_URL, "_blank");
+      }
+    });
+
+    checkBtn.addEventListener("click", async () => {
+      await checkSubscription();
+    });
+
+    toolBtn.addEventListener("click", async () => {
+      setButtonLoading(toolBtn, "Проверяем доступ...");
+
+      const ok = await checkSubscription({ silent: true });
+
+      resetToolButton();
+
+      if (!ok) {
+        showStatus(
+          "error",
+          "❌ Ты отписался от канала.<br>Подпишись снова, чтобы пользоваться инструментом."
+        );
+        haptic("error");
+        return;
+      }
+
+      if (!toolUrl) {
+        showStatus("error", "⚠️ Ссылка на инструмент не найдена. Нажми проверку ещё раз.");
+        haptic("error");
+        return;
+      }
+
+      window.location.href = toolUrl;
+    });
+
+    window.addEventListener("load", async () => {
+      const accessGranted = localStorage.getItem("creatify_access_granted") === "true";
+
+      if (accessGranted && toolUrl) {
+        showUnlockedState(toolUrl);
+        await checkSubscription({ silent: true });
+      }
+    });
+  </script>
 </body>
 </html>
